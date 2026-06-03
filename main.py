@@ -302,7 +302,7 @@ def send_email(title, body, image_url):
             return
 
         msg = MIMEMultipart("alternative")
-        msg["From"] = SMTP_USER
+        msg["From"] = f"远行商人 <{SMTP_USER}>"
         msg["To"] = ",".join(to_list)
         msg["Subject"] = title
 
