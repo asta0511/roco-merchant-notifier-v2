@@ -296,9 +296,14 @@ def send_email(title, body, image_url):
         print("⚠️ 邮件未配置，跳过")
         return
     try:
+        to_list = [addr.strip() for addr in MAIL_TO.split(",") if addr.strip()]
+        if not to_list:
+            print("⚠️ 收件人列表为空，跳过")
+            return
+
         msg = MIMEMultipart("alternative")
         msg["From"] = SMTP_USER
-        msg["To"] = MAIL_TO
+        msg["To"] = ",".join(to_list)
         msg["Subject"] = title
 
         text_part = MIMEText(body, "plain", "utf-8")
@@ -318,8 +323,8 @@ def send_email(title, body, image_url):
 
         with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=15) as server:
             server.login(SMTP_USER, SMTP_PASS)
-            server.sendmail(SMTP_USER, MAIL_TO, msg.as_string())
-        print("✅ 邮件已发送")
+            server.sendmail(SMTP_USER, to_list, msg.as_string())
+        print(f"✅ 邮件已发送 ({len(to_list)} 个收件人)")
     except Exception as e:
         print(f"❌ 邮件发送失败: {e}")
 
