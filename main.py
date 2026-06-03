@@ -283,21 +283,20 @@ def push_all(title, body, markdown, image_url):
             print(f"❌ 钉钉推送失败: {e}")
 
     if FEISHU_WEBHOOK:
-        feishu_content = f"{title}\n{body}"
+        md = f"**{title}**\n{body}"
         if image_url:
-            feishu_content += f"\n图片: {image_url}"
+            md += f"\n![商品截图]({image_url})"
         try:
             requests.post(FEISHU_WEBHOOK, json={
-                "msg_type": "post",
-                "content": {
-                    "post": {
-                        "zh_cn": {
-                            "title": title,
-                            "content": [
-                                [{"tag": "text", "text": feishu_content}]
-                            ]
-                        }
-                    }
+                "msg_type": "interactive",
+                "card": {
+                    "header": {
+                        "title": {"tag": "plain_text", "content": title},
+                        "template": "blue"
+                    },
+                    "elements": [
+                        {"tag": "markdown", "content": md}
+                    ]
                 }
             }, timeout=10)
             print("✅ 飞书推送已发送")
