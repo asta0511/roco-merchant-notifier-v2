@@ -4,6 +4,7 @@ import asyncio
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.utils import formataddr
 from datetime import datetime, timedelta, timezone
 from jinja2 import Environment, FileSystemLoader
 from playwright.async_api import async_playwright
@@ -302,7 +303,7 @@ def send_email(title, body, image_url):
             return
 
         msg = MIMEMultipart("alternative")
-        msg["From"] = f"远行商人 <{SMTP_USER}>"
+        msg["From"] = formataddr(("远行商人", SMTP_USER))
         msg["To"] = ",".join(to_list)
         msg["Subject"] = title
 
