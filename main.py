@@ -1,6 +1,9 @@
 import os
 import requests
 import asyncio
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta, timezone
 from jinja2 import Environment, FileSystemLoader
 from playwright.async_api import async_playwright
@@ -11,7 +14,12 @@ IMGBB_KEY = os.environ.get("IMGBB_KEY")
 NOTIFYME_UUID = os.environ.get("NOTIFYME_UUID")
 BARK_KEY = os.environ.get("BARK_KEY")
 DINGTALK_WEBHOOK = os.environ.get("DINGTALK_WEBHOOK")
-FEISHU_WEBHOOK = os.environ.get("FEISHU_WEBHOOK")
+
+SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.163.com")
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "465"))
+SMTP_USER = os.environ.get("SMTP_USER")
+SMTP_PASS = os.environ.get("SMTP_PASS")
+MAIL_TO = os.environ.get("MAIL_TO")
 
 GAME_API_URL = "https://wegame.shallow.ink/api/v1/games/rocom/merchant/info"
 NOTIFYME_SERVER = "https://notifyme-server.wzn556.top/api/send"
@@ -282,26 +290,38 @@ def push_all(title, body, markdown, image_url):
         except Exception as e:
             print(f"❌ 钉钉推送失败: {e}")
 
-    if FEISHU_WEBHOOK:
-        md = f"**{title}**\n{body}"
+
+def send_email(title, body, image_url):
+    if not SMTP_USER or not SMTP_PASS or not MAIL_TO:
+        print("⚠️ 邮件未配置，跳过")
+        return
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["From"] = SMTP_USER
+        msg["To"] = MAIL_TO
+        msg["Subject"] = title
+
+        text_part = MIMEText(body, "plain", "utf-8")
+        msg.attach(text_part)
+
+        html = f"""
+        <html>
+        <body style="font-family:sans-serif;padding:20px;background:#f5f0ea">
+            <h2 style="color:#332719">{title}</h2>
+            <p style="color:#6b5846">{body}</p>
+        """
         if image_url:
-            md += f"\n![商品截图]({image_url})"
-        try:
-            requests.post(FEISHU_WEBHOOK, json={
-                "msg_type": "interactive",
-                "card": {
-                    "header": {
-                        "title": {"tag": "plain_text", "content": title},
-                        "template": "blue"
-                    },
-                    "elements": [
-                        {"tag": "markdown", "content": md}
-                    ]
-                }
-            }, timeout=10)
-            print("✅ 飞书推送已发送")
-        except Exception as e:
-            print(f"❌ 飞书推送失败: {e}")
+            html += f'<hr><img src="{image_url}" style="max-width:100%;border-radius:12px;margin-top:12px" />'
+        html += "</body></html>"
+        html_part = MIMEText(html, "html", "utf-8")
+        msg.attach(html_part)
+
+        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+            server.login(SMTP_USER, SMTP_PASS)
+            server.sendmail(SMTP_USER, MAIL_TO, msg.as_string())
+        print("✅ 邮件已发送")
+    except Exception as e:
+        print(f"❌ 邮件发送失败: {e}")
 
 # ================= 5. 主入口 =================
 
@@ -326,6 +346,7 @@ async def main():
     img_url = await upload_to_imgbb(local_img)
     
     push_all("📢 远行商人已刷新", push_body, "### 🛒 商人刷新详情", img_url)
+    send_email("远行商人已刷新", push_body, img_url)
 
 if __name__ == "__main__":
     asyncio.run(main())
