@@ -11,6 +11,7 @@ IMGBB_KEY = os.environ.get("IMGBB_KEY")
 NOTIFYME_UUID = os.environ.get("NOTIFYME_UUID")
 BARK_KEY = os.environ.get("BARK_KEY")
 DINGTALK_WEBHOOK = os.environ.get("DINGTALK_WEBHOOK")
+FEISHU_WEBHOOK = os.environ.get("FEISHU_WEBHOOK")
 
 GAME_API_URL = "https://wegame.shallow.ink/api/v1/games/rocom/merchant/info"
 NOTIFYME_SERVER = "https://notifyme-server.wzn556.top/api/send"
@@ -280,6 +281,28 @@ def push_all(title, body, markdown, image_url):
             print("✅ 钉钉推送已发送")
         except Exception as e:
             print(f"❌ 钉钉推送失败: {e}")
+
+    if FEISHU_WEBHOOK:
+        feishu_content = f"{title}\n{body}"
+        if image_url:
+            feishu_content += f"\n图片: {image_url}"
+        try:
+            requests.post(FEISHU_WEBHOOK, json={
+                "msg_type": "post",
+                "content": {
+                    "post": {
+                        "zh_cn": {
+                            "title": title,
+                            "content": [
+                                [{"tag": "text", "text": feishu_content}]
+                            ]
+                        }
+                    }
+                }
+            }, timeout=10)
+            print("✅ 飞书推送已发送")
+        except Exception as e:
+            print(f"❌ 飞书推送失败: {e}")
 
 # ================= 5. 主入口 =================
 

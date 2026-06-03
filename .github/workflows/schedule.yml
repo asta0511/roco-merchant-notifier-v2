@@ -37,4 +37,5 @@ jobs:
           NOTIFYME_UUID: ${{ secrets.NOTIFYME_UUID }}
           BARK_KEY: ${{ secrets.BARK_KEY }}
           DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
         run: python main.py
