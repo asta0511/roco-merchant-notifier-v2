@@ -36,4 +36,5 @@ jobs:
           IMGBB_KEY: ${{ secrets.IMGBB_KEY }}
           NOTIFYME_UUID: ${{ secrets.NOTIFYME_UUID }}
           BARK_KEY: ${{ secrets.BARK_KEY }}
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
         run: python main.py

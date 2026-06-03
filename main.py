@@ -10,6 +10,7 @@ ROCOM_API_KEY = os.environ.get("ROCOM_API_KEY")
 IMGBB_KEY = os.environ.get("IMGBB_KEY")
 NOTIFYME_UUID = os.environ.get("NOTIFYME_UUID")
 BARK_KEY = os.environ.get("BARK_KEY")
+DINGTALK_WEBHOOK = os.environ.get("DINGTALK_WEBHOOK")
 
 GAME_API_URL = "https://wegame.shallow.ink/api/v1/games/rocom/merchant/info"
 NOTIFYME_SERVER = "https://notifyme-server.wzn556.top/api/send"
@@ -266,6 +267,19 @@ def push_all(title, body, markdown, image_url):
             }, timeout=10)
             print("✅ Bark 推送已发送")
         except: pass
+
+    if DINGTALK_WEBHOOK:
+        markdown_content = f"### {title}\n\n{body}"
+        if image_url:
+            markdown_content += f"\n\n![商品截图]({image_url})"
+        try:
+            requests.post(DINGTALK_WEBHOOK, json={
+                "msgtype": "markdown",
+                "markdown": {"title": title, "text": markdown_content}
+            }, timeout=10)
+            print("✅ 钉钉推送已发送")
+        except Exception as e:
+            print(f"❌ 钉钉推送失败: {e}")
 
 # ================= 5. 主入口 =================
 
