@@ -323,8 +323,15 @@ def send_email(title, body, image_url):
 
         with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=15) as server:
             server.login(SMTP_USER, SMTP_PASS)
-            server.sendmail(SMTP_USER, to_list, msg.as_string())
-        print(f"✅ 邮件已发送 ({len(to_list)} 个收件人)")
+            success = 0
+            for addr in to_list:
+                try:
+                    server.sendmail(SMTP_USER, [addr], msg.as_string())
+                    print(f"  ✅ {addr}")
+                    success += 1
+                except Exception as e:
+                    print(f"  ❌ {addr}: {e}")
+        print(f"✅ 邮件: {success}/{len(to_list)} 个成功")
     except Exception as e:
         print(f"❌ 邮件发送失败: {e}")
 
